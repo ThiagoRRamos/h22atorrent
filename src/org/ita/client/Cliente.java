@@ -6,13 +6,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 import org.ita.server.MD5Checksum;
 
@@ -21,7 +18,8 @@ public class Cliente {
 
 		String hostName = "localhost";
 		int portNumber = 4567;
-
+		String fileName = "file";
+		
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
@@ -35,8 +33,9 @@ public class Cliente {
 				boolean ok = true;
 				while (ok && (userInput = stdIn.readLine()) != null) {
 					System.out.println(userInput.isEmpty());
-					if (userInput.isEmpty())
+					if (userInput.isEmpty()){
 						ok = false;
+					}
 					out.println(userInput);
 				}
 				System.out.println("Mandado");
@@ -65,12 +64,12 @@ public class Cliente {
 					}
 					System.out.println("Terminou leitura");
 					int tamanhoBytes = conteudo.getBytes().length;
-					File arquivo = new File("local.tracker");
+					File arquivo = new File(fileName + "-local.tracker");
 					FileWriter writer = new FileWriter(arquivo);
 					writer.write(conteudo);
 					writer.close();
 					System.out.println("Arquivo salvo");
-					Path path = pegarArquivo("local.tracker");
+					Path path = pegarArquivo(fileName + "-local.tracker");
 					String hashCalculated = getHash(path);
 					if(tamanhoBytes == infoBytes && hashCalculated.equals(hash)){
 						System.out.println("arquivo recebido com sucesso");

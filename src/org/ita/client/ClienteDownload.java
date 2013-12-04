@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,9 +95,16 @@ public class ClienteDownload {
 
 	public boolean pedirArquivo(String hostName, int portNumber,
 			String filename, int pedaco) {
-		try (Socket echoSocket = new Socket(hostName, portNumber);
-				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
-						true);
+		Socket echoSocket = new Socket();
+		try {
+			echoSocket.connect(new InetSocketAddress(hostName, portNumber),
+					5000);
+			echoSocket.setSoTimeout(5000);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try (PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
+				true);
 				InputStream is = echoSocket.getInputStream();
 				InputStreamReader isr = new InputStreamReader(is);
 				BufferedReader in = new BufferedReader(isr);
@@ -109,10 +118,12 @@ public class ClienteDownload {
 			out.println("");
 			String resposta = in.readLine();
 			if (resposta.equals("Nao")) {
+				echoSocket.close();
 				return false;
 			} else if (resposta.equals("Sim")) {
 				String rando = in.readLine();
 				if (Integer.parseInt(rando) != rand) {
+					echoSocket.close();
 					return false;
 				}
 				String quantBytes = in.readLine();
@@ -132,10 +143,12 @@ public class ClienteDownload {
 					fos.close();
 					String calculatedHash = MD5Checksum.getMD5Checksum(filename
 							+ ".h22apart." + (pedaco));
+					echoSocket.close();
 					if (!hash.equals(calculatedHash))
 						return false;
 					return true;
 				} else {
+					echoSocket.close();
 					return false;
 				}
 			} else {
@@ -144,7 +157,10 @@ public class ClienteDownload {
 
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);
-		} catch (IOException e) {
+		} catch (SocketTimeoutException e) {
+			System.err.println("Socket timeout em " + hostName);
+			return false;
+		}catch (IOException e) {
 			System.err.println("Couldn't get I/O for the connection to "
 					+ hostName);
 		} catch (Exception e) {

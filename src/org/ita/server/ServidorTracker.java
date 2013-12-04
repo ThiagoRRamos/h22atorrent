@@ -1,7 +1,9 @@
 package org.ita.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -10,7 +12,14 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.json.generators.JSONGenerator;
+import com.json.generators.JsonGeneratorFactory;
+import com.json.parsers.JSONParser;
+import com.json.parsers.JsonParserFactory;
 
 public class ServidorTracker implements Runnable {
 
@@ -19,7 +28,7 @@ public class ServidorTracker implements Runnable {
 	public ServidorTracker(Socket client) {
 		this.client = client;
 	}
-
+	
 	@Override
 	public void run() {
 		PrintWriter out;
@@ -46,7 +55,12 @@ public class ServidorTracker implements Runnable {
 				}
 			} else if (ehAvisodePosse(listLines)) {
 				if (avisoDePosseCorreto(listLines)) {
-
+					adicionarAoTracker(listLines.get(2),
+							Integer.parseInt(listLines.get(3).replaceFirst(
+									"pedaco:", "")), listLines.get(4)
+									.replaceFirst("ip:", ""),
+							Integer.parseInt(listLines.get(5).replaceFirst(
+									"porta:", "")));
 				} else {
 
 				}
@@ -55,14 +69,63 @@ public class ServidorTracker implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	private static void adicionarAoTracker(String fileName, int numPedaco, String ip,
+			int porta) {
+
+		String conteudoJson = null;
+		BufferedReader bufReader = null;
+		try {
+			FileReader f = new FileReader(fileName + ".tracker");
+			bufReader = new BufferedReader(f);
+			conteudoJson = bufReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			bufReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JsonParserFactory factory = JsonParserFactory.getInstance();
+		JSONParser parser = factory.newJsonParser();
+		Map jsonMap = parser.parseJson(conteudoJson);
+		ArrayList<Map> pedacos = (ArrayList<Map>) jsonMap.get("pedacos");
+		Map pedaco = pedacos.get(numPedaco);
+
+		ArrayList<Map> fornecedores = (ArrayList<Map>) pedaco
+				.get("fornecedores");
+
+		HashMap<String, String> novoFornecedor = new HashMap<>();
+		novoFornecedor.put("ip", ip);
+		novoFornecedor.put("porta", "" + porta);
+
+		fornecedores.add(novoFornecedor);
+
+		JsonGeneratorFactory factoryOut = JsonGeneratorFactory.getInstance();
+		JSONGenerator generator = factoryOut.newJsonGenerator();
+		String json = generator.generateJson(jsonMap);
+		json = json.substring(1, json.length()-1);
+		File arquivo = new File(fileName + ".tracker");
+		FileWriter writer;
+		try {
+			writer = new FileWriter(arquivo);
+			writer.write(json);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private boolean avisoDePosseCorreto(List<String> listLines) {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	private boolean ehAvisodePosse(List<String> listLines) {
-		// TODO Auto-generated method stub
+		if (listLines.get(0).contains("Posse"))
+			return true;
 		return false;
 	}
 
@@ -128,7 +191,9 @@ public class ServidorTracker implements Runnable {
 	}
 
 	private boolean ehRequisicaodeArquivo(List<String> listLines) {
-		return true;
+		if (listLines.get(0).contains("Voce tem"))
+			return true;
+		return false;
 	}
 
 }

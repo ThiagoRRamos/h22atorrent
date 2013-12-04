@@ -2,6 +2,7 @@ package org.ita.client;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import com.json.parsers.JSONParser;
@@ -23,7 +25,26 @@ public class ClienteDownload {
 		int portNumber = 4568;
 		String f = "file";
 		ClienteDownload cd = new ClienteDownload(f);
-		cd.pedirArquivo(hostName, portNumber, f, 1);
+		cd.tentarBaixarPedacos();
+		cd.juntarPedacos();
+	}
+
+	public File juntarPedacos() throws IOException {
+		File ff = new File(filename);
+		ff.createNewFile();
+		byte[] b = new byte[arquivo.getTamanho()];
+		int currentSize = 0;
+		for (int i = 0; i < arquivo.getPedacos().size(); i++) {
+			File f = new File(filename + ".h22apart." + (i + 1));
+			FileInputStream fis = new FileInputStream(f);
+			fis.read(b, currentSize, (int) f.length());
+			fis.close();
+		}
+		FileOutputStream fos = new FileOutputStream(ff);
+		fos.write(b);
+		fos.flush();
+		fos.close();
+		return ff;
 	}
 
 	public boolean pedirArquivo(String hostName, int portNumber,
@@ -43,39 +64,31 @@ public class ClienteDownload {
 			out.println(filename);
 			out.println("pedaco:" + pedaco);
 			out.println("");
-			System.out.println("Mandado");
 			String resposta = in.readLine();
-			System.out.println("Reposta:" + resposta);
 			if (resposta.equals("Nao")) {
-				System.out.println("Resposta negativa");
-				return true;
+				return false;
 			} else if (resposta.equals("Sim")) {
-				System.out.println("Comecou leitura");
 				String rando = in.readLine();
-				if (Integer.parseInt(rando) == rand)
-					System.out.println("Rand OK");
+				if (Integer.parseInt(rando) != rand) {
+					return false;
+				}
 				String quantBytes = in.readLine();
 				quantBytes = quantBytes
 						.replaceFirst("Quantidade de bytes:", "");
-				System.out.println(quantBytes);
 				int infoBytes = Integer.parseInt(quantBytes);
 				String hash = in.readLine();
 				hash = hash.replaceFirst("Hash:", "");
-				System.out.println(hash);
 				byte[] arquivo = lerArquivo(in, infoBytes);
-				System.out.println("Arquico lido");
 				String fim = in.readLine();
-				File f = new File("arroba.txt");
+				File f = new File(filename + ".h22apart." + (pedaco));
 				f.createNewFile();
 				if (fim.equals("Fim do pedaco")) {
-					System.out.println("Fiimm");
 					FileOutputStream fos = new FileOutputStream(f);
 					fos.write(arquivo);
 					fos.flush();
 					fos.close();
 					return true;
 				} else {
-					System.out.println(fim);
 					return false;
 				}
 			} else {
@@ -84,11 +97,9 @@ public class ClienteDownload {
 
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);
-			System.exit(1);
 		} catch (IOException e) {
 			System.err.println("Couldn't get I/O for the connection to "
 					+ hostName);
-			System.exit(1);
 		}
 		return false;
 	}
@@ -97,7 +108,6 @@ public class ClienteDownload {
 		byte[] res = new byte[quantBytes];
 		try {
 			String sres = is.readLine();
-			System.out.println(quantBytes + "-" + sres.length());
 			for (int i = 0; i < quantBytes; i++) {
 				res[i] = Byte.parseByte(sres.substring(2 * i, 2 * i + 2), 16);
 			}
@@ -108,10 +118,13 @@ public class ClienteDownload {
 	}
 
 	private ArquivoDownload arquivo;
+	private String filename;
+	List<Pedaco> pedacosBaixados = new ArrayList<>();
 
 	public ClienteDownload(String fileName) {
 		String conteudoJson = null;
 		BufferedReader bufReader = null;
+		this.filename = fileName;
 		try {
 			FileReader f = new FileReader(fileName + "-local.tracker");
 			bufReader = new BufferedReader(f);
@@ -147,7 +160,23 @@ public class ClienteDownload {
 	}
 
 	public boolean tentarBaixarPedacos() {
-		// Baixar os pedacos em arquivo
+		int i = 0;
+		System.out.println(pedacosBaixados);
+
+		for (Pedaco p : arquivo.getPedacos()) {
+			i++;
+			if (!pedacosBaixados.contains(p)) {
+				for (Fornecedor f : p.getFornecedores()) {
+					if (pedirArquivo(f.getIp(), f.getPorta(), filename, i)) {
+						pedacosBaixados.add(p);
+						break;
+					}
+				}
+			}
+		}
+		if (pedacosBaixados.size() == arquivo.getPedacos().size()) {
+			return true;
+		}
 		return false;
 	}
 }

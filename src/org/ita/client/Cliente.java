@@ -14,12 +14,37 @@ import java.nio.file.Path;
 import org.ita.server.MD5Checksum;
 
 public class Cliente {
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args){
+		String fileName = "file";
+		if (pedirArquivoServidor(fileName)) {
+			System.out.println("Arquivo chegou");
+			ClienteDownload cd = new ClienteDownload(fileName);
+			System.out.println("Aca");
+			while(!cd.tentarBaixarPedacos()){
+				System.out.println("AAA");
+				try {
+					System.out.println("Ainda nao deu");
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			System.out.println("OPSaa");
+			try {
+				cd.juntarPedacos();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 
+	private static boolean pedirArquivoServidor(String fileName) {
 		String hostName = "localhost";
 		int portNumber = 4567;
-		String fileName = "file";
-		
+
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
@@ -27,68 +52,62 @@ public class Cliente {
 						echoSocket.getInputStream()));
 				BufferedReader stdIn = new BufferedReader(
 						new InputStreamReader(System.in))) {
-			while(true){
-				System.out.println("Escreva o nome do arquivo .tracker");
-				String userInput;
-				boolean ok = true;
-				while (ok && (userInput = stdIn.readLine()) != null) {
-					System.out.println(userInput.isEmpty());
-					if (userInput.isEmpty()){
-						ok = false;
-					}
-					out.println(userInput);
-				}
+			while (true) {
+				out.println("Voce tem " + fileName + ".tracker");
+				out.println();
 				System.out.println("Mandado");
 				String resposta = in.readLine();
 				System.out.println("Reposta:" + resposta);
-				if(resposta.equals("Nao")){
+				if (resposta.equals("Nao")) {
 					System.out.println("Resposta negativa");
 					break;
-				} else if(resposta.equals("Sim")) {
-					System.out.println("Comecou leitura");
+				} else if (resposta.equals("Sim")) {
 					String quantBytes = in.readLine();
-					quantBytes = quantBytes.replaceFirst("Quantidade de bytes: ", "");
+					quantBytes = quantBytes.replaceFirst(
+							"Quantidade de bytes: ", "");
 					int infoBytes = Integer.parseInt(quantBytes);
 					String hash = in.readLine();
 					hash = hash.replaceFirst("Hash: ", "");
 					String conteudo;
 					String emLeitura = in.readLine();
 					conteudo = emLeitura;
-					ok = true;
-					while(ok && (emLeitura = in.readLine()) != null){
-						if (emLeitura.isEmpty()){
+					boolean ok = true;
+					while (ok && (emLeitura = in.readLine()) != null) {
+						if (emLeitura.isEmpty()) {
 							ok = false;
 							conteudo += emLeitura;
-						}else
+						} else
 							conteudo += emLeitura + "\n";
 					}
-					System.out.println("Terminou leitura");
 					int tamanhoBytes = conteudo.getBytes().length;
 					File arquivo = new File(fileName + "-local.tracker");
 					FileWriter writer = new FileWriter(arquivo);
 					writer.write(conteudo);
 					writer.close();
-					System.out.println("Arquivo salvo");
 					Path path = pegarArquivo(fileName + "-local.tracker");
 					String hashCalculated = getHash(path);
-					if(tamanhoBytes == infoBytes && hashCalculated.equals(hash)){
+					if (tamanhoBytes == infoBytes
+							&& hashCalculated.equals(hash)) {
 						System.out.println("arquivo recebido com sucesso");
-						System.out.println(conteudo);
-						break;
+						return true;
 					}
-					if(tamanhoBytes != infoBytes){
+					if (tamanhoBytes != infoBytes) {
 						System.out.println("Tam Esperado " + infoBytes);
 						System.out.println("Tam Recebido " + tamanhoBytes);
+						return false;
 					}
-					
-					if(!hashCalculated.equals(hash)){
+
+					if (!hashCalculated.equals(hash)) {
 						System.out.println("Hash Esperado " + hash);
 						System.out.println("Hash Recebido " + hashCalculated);
+						return false;
 					}
-					System.out.println("Os dados do arquivo recebido não batem");
+					System.out
+							.println("Os dados do arquivo recebido não batem");
 					continue;
 				} else {
-					System.out.println("Resposta desconhecida do servidor: " + resposta);
+					System.out.println("Resposta desconhecida do servidor: "
+							+ resposta);
 					continue;
 				}
 			}
@@ -100,8 +119,9 @@ public class Cliente {
 					+ hostName);
 			System.exit(1);
 		}
+		return false;
 	}
-	
+
 	private static String getHash(Path p) {
 		try {
 			return MD5Checksum.getMD5Checksum(p.toString());
@@ -110,9 +130,9 @@ public class Cliente {
 		}
 		return "FAIL";
 	}
-	
+
 	private static Path pegarArquivo(String nomeArquivo) {
 		return FileSystems.getDefault().getPath(nomeArquivo);
 	}
-	
+
 }

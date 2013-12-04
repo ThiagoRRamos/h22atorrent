@@ -1,1 +1,1 @@
-{"tamanho":"10000","pedacos":[{"fornecedores":[{"ip":"100.123.123.12","porta":"8000"},{"ip":"100.13.90.1","porta":"80"}]},{"fornecedores":[{"ip":"100.123.123.12","porta":"8000"},{"ip":"100.13.90.1","porta":"80"}]}],"md5":"d5e0ecb25f58bfa99339dcb189c2a9fb"}
+{"tamanho":"43","pedacos":[{"fornecedores":[{"ip":"localhost","porta":"4568"}]}],"md5":"d5e0ecb25f58bfa99339dcb189c2a9fb"}

@@ -92,7 +92,6 @@ public class UploaderArquivos implements Runnable {
 		try {
 			return MD5Checksum.getMD5Checksum(p.toString());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return "FAIL";
@@ -102,7 +101,6 @@ public class UploaderArquivos implements Runnable {
 		try {
 			return Files.readAllBytes(p).length;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return 0;

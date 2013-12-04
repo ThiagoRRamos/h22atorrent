@@ -20,7 +20,8 @@ public class ClienteUpload {
 			System.out.println("Cliente Upload iniciado com sucesso");
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
-				System.out.println("Requisicao recebida");
+				System.out.println("Requisicao recebida de "
+						+ clientSocket.getLocalAddress());
 				processarRequisicao(clientSocket);
 			}
 		} catch (IOException e) {

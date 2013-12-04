@@ -12,7 +12,7 @@ public class Servidor {
 
 	public static void main(String[] args) throws IOException {
 		int portNumber = 4567;
-		if(args.length>0){
+		if (args.length > 0) {
 			portNumber = Integer.parseInt(args[0]);
 		}
 
@@ -20,11 +20,13 @@ public class Servidor {
 			System.out.println("Servidor iniciado com sucesso");
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
-				System.out.println("Requisicao recebida");
+				System.out.println("Requisicao recebida de "
+						+ clientSocket.getLocalAddress());
 				processarRequisicao(clientSocket);
 			}
 		} catch (IOException e) {
-			System.out.println("Exception caught when trying to listen on port "
+			System.out
+					.println("Exception caught when trying to listen on port "
 							+ portNumber + " or listening for a connection");
 			System.out.println(e.getMessage());
 		}

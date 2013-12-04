@@ -26,7 +26,6 @@ public class AvisadorPosse {
 				BufferedReader stdIn = new BufferedReader(
 						new InputStreamReader(System.in))) {
 			while (true) {
-				System.out.println("Inicio do aviso");
 				out.println("Posse");
 				int rand = (new Random()).nextInt((int) Math.pow(2, 32));
 				out.println(rand);
@@ -35,24 +34,21 @@ public class AvisadorPosse {
 				out.println("ip:" + myIp);
 				out.println("porta:" + myPort);
 				out.println("");
-				System.out.println("Aviso enviado");
 
 				String resposta = in.readLine();
-				System.out.println("Reposta:" + resposta);
 				if (resposta.equals("OK")) {
 					resposta = in.readLine();
 					if (Integer.parseInt(resposta) == rand) {
-						System.out.println("Funcionou beleza");
 						return true;
 					} else {
-						System.out.println("Rand não bateu");
+						System.err.println("Rand não bateu");
 						return false;
 					}
 				} else if (resposta.equals("Repetir")) {
 					if (Integer.parseInt(resposta) == rand)
 						System.out.println("Rand bateu, repetir mensagem");
 					else {
-						System.out.println("Rand não bateu");
+						System.err.println("Rand não bateu");
 						return false;
 					}
 				}

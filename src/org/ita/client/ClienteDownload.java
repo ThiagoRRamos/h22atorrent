@@ -48,10 +48,8 @@ public class ClienteDownload {
 		JSONParser parser = factory.newJsonParser();
 		Map jsonMap = parser.parseJson(conteudoJson);
 
-		System.out.println(jsonMap.get("tamanho"));
 		this.arquivo = new ArquivoDownload(fileName,
 				Integer.parseInt((String) jsonMap.get("tamanho")));
-		System.out.println(jsonMap.get("pedacos"));
 
 		ArrayList<Map> second = (ArrayList<Map>) jsonMap.get("pedacos");
 		int i = 0;
@@ -72,7 +70,6 @@ public class ClienteDownload {
 		ff.createNewFile();
 		byte[] b = new byte[arquivo.getTamanho()];
 		int currentSize = 0;
-		System.out.println("Tamanho : " + arquivo.getTamanho());
 		for (int i = 0; i < arquivo.getPedacos().size(); i++) {
 			File f = new File(filename + ".h22apart." + (i + 1));
 			FileInputStream fis = new FileInputStream(f);
@@ -96,8 +93,6 @@ public class ClienteDownload {
 
 	public boolean pedirArquivo(String hostName, int portNumber,
 			String filename, int pedaco) {
-		System.out.println("Tentando " + hostName + " - " + portNumber + " - "
-				+ filename + " - " + pedaco);
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
@@ -294,7 +289,6 @@ public class ClienteDownload {
 			}
 		}
 		if (pedacosBaixados.size() == arquivo.getPedacos().size()) {
-			System.out.println(arquivo.getPedacos());
 			return true;
 		}
 		return false;

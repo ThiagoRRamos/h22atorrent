@@ -135,6 +135,10 @@ public class ClienteDownload {
 					fos.write(arquivo);
 					fos.flush();
 					fos.close();
+					String calculatedHash = MD5Checksum.getMD5Checksum(filename
+							+ ".h22apart." + (pedaco));
+					if (!hash.equals(calculatedHash))
+						return false;
 					return true;
 				} else {
 					return false;
@@ -148,6 +152,8 @@ public class ClienteDownload {
 		} catch (IOException e) {
 			System.err.println("Couldn't get I/O for the connection to "
 					+ hostName);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return false;
 	}

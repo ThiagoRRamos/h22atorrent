@@ -1,10 +1,14 @@
 package org.ita.server;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +27,6 @@ public class ServidorTracker implements Runnable {
 			out = new PrintWriter(client.getOutputStream(), true);
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 					client.getInputStream()));
-			System.out.println(client.isClosed());
 			List<String> listLines = new ArrayList<>();
 			String inputLine;
 			boolean ok = true;
@@ -41,11 +44,11 @@ public class ServidorTracker implements Runnable {
 				} else {
 					enviarNaoTenhoArquivo(out);
 				}
-			}else if(ehAvisodePosse(listLines)){
-				if(avisoDePosseCorreto(listLines)){
-					
-				}else{
-					
+			} else if (ehAvisodePosse(listLines)) {
+				if (avisoDePosseCorreto(listLines)) {
+
+				} else {
+
 				}
 			}
 		} catch (IOException e) {
@@ -64,16 +67,58 @@ public class ServidorTracker implements Runnable {
 	}
 
 	private void enviarNaoTenhoArquivo(PrintWriter out) {
-		System.out.println("Nao tem arquivo");
+		System.out.println("Nao\n");
 		out.println("Nao\n");
 	}
 
 	private void enviarArquivo(String nomeArquivo, PrintWriter out) {
+		out.println("Sim");
+		Path p = pegarArquivo(nomeArquivo);
+		int qteBytes = getQtdeBytes(p);
+		out.println("Quantidade de bytes: " + qteBytes);
+		System.out.println("Quantidade de bytes: " + qteBytes);
+		String hash = getHash(p);
+		out.println("Hash: " + hash);
+		System.out.println("Hash: " + hash);
+		try (BufferedReader br = new BufferedReader(
+				new FileReader(p.toString()))) {
+			String a;
+			while ((a = br.readLine()) != null) {
+				out.println(a);
+				System.out.println(a);
+			}
+		} catch (IOException e) {
+
+		}
 
 	}
 
+	private String getHash(Path p) {
+		try {
+			return MD5Checksum.getMD5Checksum(p.toString());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "FAIL";
+	}
+
+	private int getQtdeBytes(Path p) {
+		try {
+			return Files.readAllBytes(p).length;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	private Path pegarArquivo(String nomeArquivo) {
+		return FileSystems.getDefault().getPath("file.tracker");
+	}
+
 	private boolean temArquivo(String nomeArquivo) {
-		return false;
+		return true;
 	}
 
 	private String getNomeArquivo(List<String> listLines) {

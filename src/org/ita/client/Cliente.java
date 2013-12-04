@@ -14,36 +14,28 @@ import java.nio.file.Path;
 import org.ita.server.MD5Checksum;
 
 public class Cliente {
-	public static void main(String[] args){
+	public static void main(String[] args) {
 		String fileName = "file";
-		if (pedirArquivoServidor(fileName)) {
-			System.out.println("Arquivo chegou");
+		if (pedirArquivoServidor(fileName, "localhost", 4567)) {
 			ClienteDownload cd = new ClienteDownload(fileName);
-			System.out.println("Aca");
-			while(!cd.tentarBaixarPedacos()){
-				System.out.println("AAA");
+			while (!cd.tentarBaixarPedacos()) {
 				try {
-					System.out.println("Ainda nao deu");
 					Thread.sleep(2000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			System.out.println("OPSaa");
 			try {
 				cd.juntarPedacos();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 
-	private static boolean pedirArquivoServidor(String fileName) {
-		String hostName = "localhost";
-		int portNumber = 4567;
+	private static boolean pedirArquivoServidor(String fileName,
+			String hostName, int portNumber) {
 
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
@@ -55,9 +47,7 @@ public class Cliente {
 			while (true) {
 				out.println("Voce tem " + fileName + ".tracker");
 				out.println();
-				System.out.println("Mandado");
 				String resposta = in.readLine();
-				System.out.println("Reposta:" + resposta);
 				if (resposta.equals("Nao")) {
 					System.out.println("Resposta negativa");
 					break;

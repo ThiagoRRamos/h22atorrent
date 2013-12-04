@@ -12,6 +12,9 @@ public class ClienteUpload {
 
 	public static void main(String[] args) throws IOException {
 		int portNumber = 4568;
+		if (args.length > 0) {
+			portNumber = Integer.parseInt(args[0]);
+		}
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
 			System.out.println("Cliente Upload iniciado com sucesso");
@@ -21,7 +24,8 @@ public class ClienteUpload {
 				processarRequisicao(clientSocket);
 			}
 		} catch (IOException e) {
-			System.out.println("Exception caught when trying to listen on port "
+			System.out
+					.println("Exception caught when trying to listen on port "
 							+ portNumber + " or listening for a connection");
 			System.out.println(e.getMessage());
 		}

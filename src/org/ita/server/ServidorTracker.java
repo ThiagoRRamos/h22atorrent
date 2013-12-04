@@ -28,7 +28,7 @@ public class ServidorTracker implements Runnable {
 	public ServidorTracker(Socket client) {
 		this.client = client;
 	}
-	
+
 	@Override
 	public void run() {
 		PrintWriter out;
@@ -46,6 +46,7 @@ public class ServidorTracker implements Runnable {
 					listLines.add(inputLine);
 				}
 			}
+			System.out.println(listLines);
 			if (ehRequisicaodeArquivo(listLines)) {
 				String nomeArquivo = getNomeArquivo(listLines);
 				if (temArquivo(nomeArquivo)) {
@@ -61,6 +62,8 @@ public class ServidorTracker implements Runnable {
 									.replaceFirst("ip:", ""),
 							Integer.parseInt(listLines.get(5).replaceFirst(
 									"porta:", "")));
+					out.println("OK");
+					out.println(listLines.get(1));
 				} else {
 
 				}
@@ -69,9 +72,9 @@ public class ServidorTracker implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	private static void adicionarAoTracker(String fileName, int numPedaco, String ip,
-			int porta) {
+
+	public static void adicionarAoTracker(String fileName, int numPedaco,
+			String ip, int porta) {
 
 		String conteudoJson = null;
 		BufferedReader bufReader = null;
@@ -106,7 +109,7 @@ public class ServidorTracker implements Runnable {
 		JsonGeneratorFactory factoryOut = JsonGeneratorFactory.getInstance();
 		JSONGenerator generator = factoryOut.newJsonGenerator();
 		String json = generator.generateJson(jsonMap);
-		json = json.substring(1, json.length()-1);
+		json = json.substring(1, json.length() - 1);
 		File arquivo = new File(fileName + ".tracker");
 		FileWriter writer;
 		try {
@@ -119,7 +122,6 @@ public class ServidorTracker implements Runnable {
 	}
 
 	private boolean avisoDePosseCorreto(List<String> listLines) {
-		// TODO Auto-generated method stub
 		return true;
 	}
 
@@ -130,7 +132,6 @@ public class ServidorTracker implements Runnable {
 	}
 
 	private void enviarNaoTenhoArquivo(PrintWriter out) {
-		System.out.println("Nao\n");
 		out.println("Nao\n");
 	}
 
@@ -139,19 +140,15 @@ public class ServidorTracker implements Runnable {
 		Path p = pegarArquivo(nomeArquivo);
 		int qteBytes = getQtdeBytes(p);
 		out.println("Quantidade de bytes: " + qteBytes);
-		System.out.println("Quantidade de bytes: " + qteBytes);
 		String hash = getHash(p);
 		out.println("Hash: " + hash);
-		System.out.println("Hash: " + hash);
 		try (BufferedReader br = new BufferedReader(
 				new FileReader(p.toString()))) {
 			String a;
 			while ((a = br.readLine()) != null) {
 				out.println(a);
-				System.out.println(a);
 			}
 			out.println("");
-			System.out.println("");
 		} catch (IOException e) {
 
 		}
@@ -172,27 +169,29 @@ public class ServidorTracker implements Runnable {
 		try {
 			return Files.readAllBytes(p).length;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return 0;
 	}
 
 	private Path pegarArquivo(String nomeArquivo) {
-		return FileSystems.getDefault().getPath("file.tracker");
+		return FileSystems.getDefault().getPath(nomeArquivo);
 	}
 
 	private boolean temArquivo(String nomeArquivo) {
-		return true;
+		return Files.exists(FileSystems.getDefault().getPath(nomeArquivo));
 	}
 
 	private String getNomeArquivo(List<String> listLines) {
-		return null;
+		return listLines.get(0).split(" ")[2];
 	}
 
 	private boolean ehRequisicaodeArquivo(List<String> listLines) {
-		if (listLines.get(0).contains("Voce tem"))
-			return true;
+		if (listLines.get(0).startsWith("Voce tem")) {
+			if (listLines.get(0).endsWith(".tracker")) {
+				return true;
+			}
+		}
 		return false;
 	}
 

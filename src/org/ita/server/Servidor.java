@@ -12,6 +12,9 @@ public class Servidor {
 
 	public static void main(String[] args) throws IOException {
 		int portNumber = 4567;
+		if(args.length>0){
+			portNumber = Integer.parseInt(args[0]);
+		}
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
 			System.out.println("Servidor iniciado com sucesso");

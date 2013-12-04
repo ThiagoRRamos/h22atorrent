@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -21,15 +20,12 @@ import com.json.parsers.JsonParserFactory;
 
 public class ClienteDownload {
 
-	public static void main(String[] args) throws IOException {
-		String hostName = "localhost";
-		int portNumber = 4568;
-		String f = "file";
-		ClienteDownload cd = new ClienteDownload(f);
-		cd.tentarBaixarPedacos();
-		cd.juntarPedacos();
-	}
-
+	private ArquivoDownload arquivo;
+	private String filename;
+	List<Pedaco> pedacosBaixados = new ArrayList<>();
+	private String myAddress = "localhost";
+	private int myPort = 4568;
+	
 	public File juntarPedacos() throws IOException {
 		File ff = new File(filename);
 		ff.createNewFile();
@@ -39,7 +35,6 @@ public class ClienteDownload {
 		for (int i = 0; i < arquivo.getPedacos().size(); i++) {
 			File f = new File(filename + ".h22apart." + (i + 1));
 			FileInputStream fis = new FileInputStream(f);
-			System.out.println(f.length());
 			fis.read(b, currentSize, (int) f.length());
 			currentSize += f.length();
 			fis.close();
@@ -92,7 +87,6 @@ public class ClienteDownload {
 					fos.write(arquivo);
 					fos.flush();
 					fos.close();
-					System.out.println("Pedaco " + pedaco + " deu certo");
 					return true;
 				} else {
 					return false;
@@ -115,7 +109,6 @@ public class ClienteDownload {
 		try {
 			String sres = is.readLine();
 			for (int i = 0; i < quantBytes; i++) {
-				System.out.println(sres.substring(2 * i, 2 * i + 2));
 				String at = sres.substring(2 * i, 2 * i + 2);
 				res[i] = parsearByte(at);
 			}
@@ -227,13 +220,8 @@ public class ClienteDownload {
 			res += 15;
 			break;
 		}
-		System.out.println(at + " - " + res);
 		return res;
 	}
-
-	private ArquivoDownload arquivo;
-	private String filename;
-	List<Pedaco> pedacosBaixados = new ArrayList<>();
 
 	public ClienteDownload(String fileName) {
 		String conteudoJson = null;
@@ -283,6 +271,8 @@ public class ClienteDownload {
 				for (Fornecedor f : p.getFornecedores()) {
 					if (pedirArquivo(f.getIp(), f.getPorta(), filename, i)) {
 						pedacosBaixados.add(p);
+						new AvisadorPosse().avisarPosse(myAddress, myPort,
+								filename, i - 1);
 						break;
 					}
 				}

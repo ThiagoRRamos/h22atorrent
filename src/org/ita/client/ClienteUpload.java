@@ -14,7 +14,7 @@ public class ClienteUpload {
 		int portNumber = 4568;
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-			System.out.println("Servidor iniciado com sucesso");
+			System.out.println("Cliente Upload iniciado com sucesso");
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
 				System.out.println("Requisicao recebida");

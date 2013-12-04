@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -34,10 +35,13 @@ public class ClienteDownload {
 		ff.createNewFile();
 		byte[] b = new byte[arquivo.getTamanho()];
 		int currentSize = 0;
+		System.out.println("Tamanho : " + arquivo.getTamanho());
 		for (int i = 0; i < arquivo.getPedacos().size(); i++) {
 			File f = new File(filename + ".h22apart." + (i + 1));
 			FileInputStream fis = new FileInputStream(f);
+			System.out.println(f.length());
 			fis.read(b, currentSize, (int) f.length());
+			currentSize += f.length();
 			fis.close();
 		}
 		FileOutputStream fos = new FileOutputStream(ff);
@@ -49,7 +53,8 @@ public class ClienteDownload {
 
 	public boolean pedirArquivo(String hostName, int portNumber,
 			String filename, int pedaco) {
-
+		System.out.println("Tentando " + hostName + " - " + portNumber + " - "
+				+ filename + " - " + pedaco);
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
@@ -87,6 +92,7 @@ public class ClienteDownload {
 					fos.write(arquivo);
 					fos.flush();
 					fos.close();
+					System.out.println("Pedaco " + pedaco + " deu certo");
 					return true;
 				} else {
 					return false;
@@ -109,11 +115,119 @@ public class ClienteDownload {
 		try {
 			String sres = is.readLine();
 			for (int i = 0; i < quantBytes; i++) {
-				res[i] = Byte.parseByte(sres.substring(2 * i, 2 * i + 2), 16);
+				System.out.println(sres.substring(2 * i, 2 * i + 2));
+				String at = sres.substring(2 * i, 2 * i + 2);
+				res[i] = parsearByte(at);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return res;
+	}
+
+	private static byte parsearByte(String at) {
+		byte res = 0;
+		switch (at.charAt(0)) {
+		case '0':
+			res += 0;
+			break;
+		case '1':
+			res += 16;
+			break;
+		case '2':
+			res += 16 * 2;
+			break;
+		case '3':
+			res += 16 * 3;
+			break;
+		case '4':
+			res += 16 * 4;
+			break;
+		case '5':
+			res += 16 * 5;
+			break;
+		case '6':
+			res += 16 * 6;
+			break;
+		case '7':
+			res += 16 * 7;
+			break;
+		case '8':
+			res += 16 * 8;
+			break;
+		case '9':
+			res += 16 * 9;
+			break;
+		case 'A':
+			res += 16 * 10;
+			break;
+		case 'B':
+			res += 16 * 11;
+			break;
+		case 'C':
+			res += 16 * 12;
+			break;
+		case 'D':
+			res += 16 * 13;
+			break;
+		case 'E':
+			res += 16 * 14;
+			break;
+		case 'F':
+			res += 16 * 15;
+			break;
+		}
+		switch (at.charAt(1)) {
+		case '0':
+			res += 0;
+			break;
+		case '1':
+			res += 1;
+			break;
+		case '2':
+			res += 2;
+			break;
+		case '3':
+			res += 3;
+			break;
+		case '4':
+			res += 4;
+			break;
+		case '5':
+			res += 5;
+			break;
+		case '6':
+			res += 6;
+			break;
+		case '7':
+			res += 7;
+			break;
+		case '8':
+			res += 8;
+			break;
+		case '9':
+			res += 9;
+			break;
+		case 'A':
+			res += 10;
+			break;
+		case 'B':
+			res += 11;
+			break;
+		case 'C':
+			res += 12;
+			break;
+		case 'D':
+			res += 13;
+			break;
+		case 'E':
+			res += 14;
+			break;
+		case 'F':
+			res += 15;
+			break;
+		}
+		System.out.println(at + " - " + res);
 		return res;
 	}
 
@@ -148,8 +262,9 @@ public class ClienteDownload {
 		System.out.println(jsonMap.get("pedacos"));
 
 		ArrayList<Map> second = (ArrayList<Map>) jsonMap.get("pedacos");
+		int i = 0;
 		for (Map pedacoM : (ArrayList<Map>) jsonMap.get("pedacos")) {
-			Pedaco p = new Pedaco();
+			Pedaco p = new Pedaco(++i);
 			for (Map fornecedorM : (ArrayList<Map>) pedacoM.get("fornecedores")) {
 				p.addFornecedor((String) fornecedorM.get("ip"),
 						Integer.parseInt((String) fornecedorM.get("porta")));
@@ -161,7 +276,6 @@ public class ClienteDownload {
 
 	public boolean tentarBaixarPedacos() {
 		int i = 0;
-		System.out.println(pedacosBaixados);
 
 		for (Pedaco p : arquivo.getPedacos()) {
 			i++;
@@ -175,6 +289,7 @@ public class ClienteDownload {
 			}
 		}
 		if (pedacosBaixados.size() == arquivo.getPedacos().size()) {
+			System.out.println(arquivo.getPedacos());
 			return true;
 		}
 		return false;

@@ -1,21 +1,25 @@
 package org.ita.client;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+
+import org.ita.server.MD5Checksum;
 
 public class Cliente {
 	public static void main(String[] args) throws IOException {
 
 		String hostName = "localhost";
 		int portNumber = 4567;
-
+		String fileName = "file";
+		
 		try (Socket echoSocket = new Socket(hostName, portNumber);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
@@ -29,8 +33,9 @@ public class Cliente {
 				boolean ok = true;
 				while (ok && (userInput = stdIn.readLine()) != null) {
 					System.out.println(userInput.isEmpty());
-					if (userInput.isEmpty())
+					if (userInput.isEmpty()){
 						ok = false;
+					}
 					out.println(userInput);
 				}
 				System.out.println("Mandado");
@@ -59,8 +64,14 @@ public class Cliente {
 					}
 					System.out.println("Terminou leitura");
 					int tamanhoBytes = conteudo.getBytes().length;
-//					String hashCalculated = calculateMD5(conteudo);
-					if(tamanhoBytes == infoBytes /*&& hashCalculated.equals(hash)*/){
+					File arquivo = new File(fileName + "-local.tracker");
+					FileWriter writer = new FileWriter(arquivo);
+					writer.write(conteudo);
+					writer.close();
+					System.out.println("Arquivo salvo");
+					Path path = pegarArquivo(fileName + "-local.tracker");
+					String hashCalculated = getHash(path);
+					if(tamanhoBytes == infoBytes && hashCalculated.equals(hash)){
 						System.out.println("arquivo recebido com sucesso");
 						System.out.println(conteudo);
 						break;
@@ -70,11 +81,10 @@ public class Cliente {
 						System.out.println("Tam Recebido " + tamanhoBytes);
 					}
 					
-					//Por enquanto ignorar hash
-//					if(!hashCalculated.equals(hash)){
-//						System.out.println("Hash Esperado " + hash);
-//						System.out.println("Hash Recebido " + hashCalculated);
-//					}
+					if(!hashCalculated.equals(hash)){
+						System.out.println("Hash Esperado " + hash);
+						System.out.println("Hash Recebido " + hashCalculated);
+					}
 					System.out.println("Os dados do arquivo recebido não batem");
 					continue;
 				} else {
@@ -92,22 +102,17 @@ public class Cliente {
 		}
 	}
 	
-	private static String calculateMD5(String text){
-		MessageDigest m = null;
+	private static String getHash(Path p) {
 		try {
-			m = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e) {
+			return MD5Checksum.getMD5Checksum(p.toString());
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		m.reset();
-		m.update(text.getBytes());
-		byte[] digest = m.digest();
-		BigInteger bigInt = new BigInteger(1,digest);
-		String hashtext = bigInt.toString(16);
-		while(hashtext.length() < 32 ){
-		  hashtext = "0"+hashtext;
-		}
-		return hashtext;
+		return "FAIL";
+	}
+	
+	private static Path pegarArquivo(String nomeArquivo) {
+		return FileSystems.getDefault().getPath(nomeArquivo);
 	}
 	
 }

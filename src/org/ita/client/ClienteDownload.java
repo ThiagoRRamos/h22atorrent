@@ -3,19 +3,27 @@ package org.ita.client;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Map;
+
+import com.json.parsers.JSONParser;
+import com.json.parsers.JsonParserFactory;
 
 public class ClienteDownload {
+
 	public static void main(String[] args) throws IOException {
 		String hostName = "localhost";
 		int portNumber = 4568;
-		ClienteDownload cd = new ClienteDownload();
-		cd.pedirArquivo(hostName, portNumber, "arquivo.nome", 1);
+		String f = "file";
+		ClienteDownload cd = new ClienteDownload(f);
+		cd.pedirArquivo(hostName, portNumber, f, 1);
 	}
 
 	public boolean pedirArquivo(String hostName, int portNumber,
@@ -97,5 +105,49 @@ public class ClienteDownload {
 			e.printStackTrace();
 		}
 		return res;
+	}
+
+	private ArquivoDownload arquivo;
+
+	public ClienteDownload(String fileName) {
+		String conteudoJson = null;
+		BufferedReader bufReader = null;
+		try {
+			FileReader f = new FileReader(fileName + "-local.tracker");
+			bufReader = new BufferedReader(f);
+			conteudoJson = bufReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			bufReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JsonParserFactory factory = JsonParserFactory.getInstance();
+		JSONParser parser = factory.newJsonParser();
+		Map jsonMap = parser.parseJson(conteudoJson);
+
+		System.out.println(jsonMap.get("tamanho"));
+		this.arquivo = new ArquivoDownload(fileName,
+				Integer.parseInt((String) jsonMap.get("tamanho")));
+		System.out.println(jsonMap.get("pedacos"));
+
+		ArrayList<Map> second = (ArrayList<Map>) jsonMap.get("pedacos");
+		for (Map pedacoM : (ArrayList<Map>) jsonMap.get("pedacos")) {
+			Pedaco p = new Pedaco();
+			for (Map fornecedorM : (ArrayList<Map>) pedacoM.get("fornecedores")) {
+				p.addFornecedor((String) fornecedorM.get("ip"),
+						Integer.parseInt((String) fornecedorM.get("porta")));
+			}
+			this.arquivo.addPedaco(p);
+		}
+		this.arquivo.setMd5((String) jsonMap.get("md5"));
+	}
+
+	public boolean tentarBaixarPedacos() {
+		// Baixar os pedacos em arquivo
+		return false;
 	}
 }

@@ -4,17 +4,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Cliente {
 	public static void main(String[] args) throws IOException {
-
-		// if (args.length != 2) {
-		// System.err.println(
-		// "Usage: java EchoClient <host name> <port number>");
-		// System.exit(1);
-		// }
 
 		String hostName = "localhost";
 		int portNumber = 4567;
@@ -26,16 +23,44 @@ public class Cliente {
 						echoSocket.getInputStream()));
 				BufferedReader stdIn = new BufferedReader(
 						new InputStreamReader(System.in))) {
-			String userInput;
-			boolean ok = true;
-			while (ok && (userInput = stdIn.readLine()) != null) {
-				System.out.println(userInput.isEmpty());
-				if (userInput.isEmpty())
-					ok = false;
-				out.println(userInput);
+			while(true){
+				System.out.println("Escreva o nome do arquivo .tracker");
+				String userInput;
+				boolean ok = true;
+				while (ok && (userInput = stdIn.readLine()) != null) {
+//					System.out.println(userInput.isEmpty());
+					if (userInput.isEmpty())
+						ok = false;
+					out.println(userInput);
+				}
+				System.out.println("Mandado");
+				String resposta = in.readLine();
+				System.out.println("echo: " + in.readLine());
+				if(resposta.equals("Nao"))
+					break;
+				else if(resposta.equals("Sim")) {
+					String quantBytes = in.readLine();
+					quantBytes = quantBytes.replaceFirst("Quantidade de bytes:", "");
+					int infoBytes = Integer.parseInt(quantBytes);
+					String hash = in.readLine();
+					hash = hash.replaceFirst("Hash:", "");
+					String conteudo = "";
+					String emLeitura;
+					while((emLeitura = in.readLine()) != null){
+						conteudo += emLeitura;
+					}
+					int tamanhoBytes = conteudo.getBytes("UTF-8").length;
+					String hashCalculated = calculateMD5(conteudo);
+					if(tamanhoBytes == infoBytes && hashCalculated.equals(hash))
+						break;
+					System.out.println("Os dados do arquivo recebido não batem");
+					continue;
+				} else {
+					System.out.println("Resposta desconhecida do servidor: " + resposta);
+					continue;
+				}
+				
 			}
-			System.out.println("Mandado");
-			System.out.println("echo: " + in.readLine());
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);
 			System.exit(1);
@@ -45,4 +70,23 @@ public class Cliente {
 			System.exit(1);
 		}
 	}
+	
+	private static String calculateMD5(String text){
+		MessageDigest m = null;
+		try {
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		m.reset();
+		m.update(text.getBytes());
+		byte[] digest = m.digest();
+		BigInteger bigInt = new BigInteger(1,digest);
+		String hashtext = bigInt.toString(16);
+		while(hashtext.length() < 32 ){
+		  hashtext = "0"+hashtext;
+		}
+		return hashtext;
+	}
+	
 }

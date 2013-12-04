@@ -87,6 +87,8 @@ public class ServidorTracker implements Runnable {
 				out.println(a);
 				System.out.println(a);
 			}
+			out.println("");
+			System.out.println("");
 		} catch (IOException e) {
 
 		}

@@ -28,38 +28,59 @@ public class Cliente {
 				String userInput;
 				boolean ok = true;
 				while (ok && (userInput = stdIn.readLine()) != null) {
-//					System.out.println(userInput.isEmpty());
+					System.out.println(userInput.isEmpty());
 					if (userInput.isEmpty())
 						ok = false;
 					out.println(userInput);
 				}
 				System.out.println("Mandado");
 				String resposta = in.readLine();
-				System.out.println("echo: " + in.readLine());
-				if(resposta.equals("Nao"))
+				System.out.println("Reposta:" + resposta);
+				if(resposta.equals("Nao")){
+					System.out.println("Resposta negativa");
 					break;
-				else if(resposta.equals("Sim")) {
+				} else if(resposta.equals("Sim")) {
+					System.out.println("Comecou leitura");
 					String quantBytes = in.readLine();
-					quantBytes = quantBytes.replaceFirst("Quantidade de bytes:", "");
+					quantBytes = quantBytes.replaceFirst("Quantidade de bytes: ", "");
 					int infoBytes = Integer.parseInt(quantBytes);
 					String hash = in.readLine();
 					hash = hash.replaceFirst("Hash:", "");
-					String conteudo = "";
-					String emLeitura;
-					while((emLeitura = in.readLine()) != null){
-						conteudo += emLeitura;
+					String conteudo;
+					String emLeitura = in.readLine();
+					conteudo = emLeitura;
+					ok = true;
+					while(ok && (emLeitura = in.readLine()) != null){
+						if (emLeitura.isEmpty()){
+							ok = false;
+							conteudo += emLeitura;
+						}else
+							conteudo += emLeitura + "\n";
 					}
-					int tamanhoBytes = conteudo.getBytes("UTF-8").length;
-					String hashCalculated = calculateMD5(conteudo);
-					if(tamanhoBytes == infoBytes && hashCalculated.equals(hash))
+					System.out.println("Terminou leitura");
+					int tamanhoBytes = conteudo.getBytes().length;
+//					String hashCalculated = calculateMD5(conteudo);
+					if(tamanhoBytes == infoBytes /*&& hashCalculated.equals(hash)*/){
+						System.out.println("arquivo recebido com sucesso");
+						System.out.println(conteudo);
 						break;
+					}
+					if(tamanhoBytes != infoBytes){
+						System.out.println("Tam Esperado " + infoBytes);
+						System.out.println("Tam Recebido " + tamanhoBytes);
+					}
+					
+					//Por enquanto ignorar hash
+//					if(!hashCalculated.equals(hash)){
+//						System.out.println("Hash Esperado " + hash);
+//						System.out.println("Hash Recebido " + hashCalculated);
+//					}
 					System.out.println("Os dados do arquivo recebido não batem");
 					continue;
 				} else {
 					System.out.println("Resposta desconhecida do servidor: " + resposta);
 					continue;
 				}
-				
 			}
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host " + hostName);

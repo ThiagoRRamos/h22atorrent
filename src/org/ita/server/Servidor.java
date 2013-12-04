@@ -14,8 +14,10 @@ public class Servidor {
 		int portNumber = 4567;
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+			System.out.println("Servidor iniciado com sucesso");
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
+				System.out.println("Requisicao recebida");
 				processarRequisicao(clientSocket);
 			}
 		} catch (IOException e) {

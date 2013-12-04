@@ -11,7 +11,7 @@ public class ClienteUpload {
 	static ExecutorService ES = Executors.newCachedThreadPool();
 
 	public static void main(String[] args) throws IOException {
-		int portNumber = 4567;
+		int portNumber = 4568;
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
 			System.out.println("Servidor iniciado com sucesso");

@@ -39,6 +39,7 @@ public class UploaderArquivos implements Runnable {
 				}
 			}
 			if (listLines.size() == 4) {
+				System.out.println(listLines);
 				String aptr = listLines.get(0);
 				String rand = listLines.get(1);
 				String filename = listLines.get(2);
@@ -72,16 +73,28 @@ public class UploaderArquivos implements Runnable {
 		out.println(rand);
 		System.out.println(rand);
 		Path p = FileSystems.getDefault().getPath(
-				filename + ".h22part." + pieceNumber);
+				filename + ".h22apart." + pieceNumber);
 		System.out.println("Quantidade de bytes:" + getQtdeBytes(p));
 		out.println("Quantidade de bytes:" + getQtdeBytes(p));
 		System.out.println("Hash:" + getHash(p));
 		out.println("Hash:" + getHash(p));
+		try {
+			for (byte b : Files.readAllBytes(p)) {
+				System.out.print(String.format("%02X", b));
+				out.print(String.format("%02X", b));
+			}
+			out.println("");
+			System.out.println("");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		out.println("Fim do pedaco");
 	}
 
 	private boolean tenhoarquivo(String filename, int pieceNumber) {
-		Path p = FileSystems.getDefault().getPath(
-				filename + ".h22part." + pieceNumber);
+		String f = filename + ".h22apart." + pieceNumber;
+		System.out.println(f);
+		Path p = FileSystems.getDefault().getPath(f);
 		return Files.exists(p);
 	}
 

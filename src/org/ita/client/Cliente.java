@@ -45,7 +45,7 @@ public class Cliente {
 					quantBytes = quantBytes.replaceFirst("Quantidade de bytes: ", "");
 					int infoBytes = Integer.parseInt(quantBytes);
 					String hash = in.readLine();
-					hash = hash.replaceFirst("Hash:", "");
+					hash = hash.replaceFirst("Hash: ", "");
 					String conteudo;
 					String emLeitura = in.readLine();
 					conteudo = emLeitura;

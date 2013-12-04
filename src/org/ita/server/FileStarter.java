@@ -8,9 +8,15 @@ public class FileStarter {
 
 	public static void main(String args[]) throws IOException {
 		int port = 4568;
-		int maxChunkSize = 200;
-		String filename = "curves.py";
+		int maxChunkSize = 10000;
+		String filename = "file";
 		String ipAddress = "localhost";
+		if (args.length > 0) {
+			filename = args[0];
+			if(args.length > 1){
+				ipAddress = args[1];
+			}
+		}
 		ByteReadAndWrite.readAndFragment(filename, maxChunkSize);
 		createTracker(filename, numeroPedacos(filename, maxChunkSize),
 				ipAddress, port);

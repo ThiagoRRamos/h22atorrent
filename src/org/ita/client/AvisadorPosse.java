@@ -5,19 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.Random;
 
 public class AvisadorPosse {
 
-	String hostName = "localhost";
-	int portNumber = 4567;
+	public AvisadorPosse() {
+	}
 
 	public boolean avisarPosse(String myIp, int myPort, String fileName,
 			int pedaco) {
-		try (Socket echoSocket = new Socket(hostName, portNumber);
+		try (Socket echoSocket = new Socket(Cliente.serverName,
+				Cliente.serverPort);
 				PrintWriter out = new PrintWriter(echoSocket.getOutputStream(),
 						true);
 				InputStream is = echoSocket.getInputStream();
@@ -28,7 +28,7 @@ public class AvisadorPosse {
 			while (true) {
 				System.out.println("Inicio do aviso");
 				out.println("Posse");
-				int rand = 35;
+				int rand = (new Random()).nextInt((int) Math.pow(2, 32));
 				out.println(rand);
 				out.println(fileName);
 				out.println("pedaco:" + pedaco);
@@ -59,11 +59,11 @@ public class AvisadorPosse {
 			}
 
 		} catch (UnknownHostException e) {
-			System.err.println("Don't know about host " + hostName);
+			System.err.println("Don't know about host " + Cliente.serverName);
 			System.exit(1);
 		} catch (IOException e) {
 			System.err.println("Couldn't get I/O for the connection to "
-					+ hostName);
+					+ Cliente.serverName);
 			System.exit(1);
 		}
 		return false;

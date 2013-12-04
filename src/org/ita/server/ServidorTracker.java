@@ -46,7 +46,6 @@ public class ServidorTracker implements Runnable {
 					listLines.add(inputLine);
 				}
 			}
-			System.out.println(listLines);
 			if (ehRequisicaodeArquivo(listLines)) {
 				String nomeArquivo = getNomeArquivo(listLines);
 				if (temArquivo(nomeArquivo)) {

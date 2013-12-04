@@ -14,22 +14,49 @@ import java.nio.file.Path;
 import org.ita.server.MD5Checksum;
 
 public class Cliente {
+
+	public static String serverName = "localhost";
+	public static int serverPort = 4567;
+	public static String myAddress = "localhost";
+	public static int myPort = 4568;
+
 	public static void main(String[] args) {
 		String fileName = "file";
-		if (pedirArquivoServidor(fileName, "localhost", 4567)) {
-			ClienteDownload cd = new ClienteDownload(fileName);
-			while (!cd.tentarBaixarPedacos()) {
+		if (args.length > 0) {
+			fileName = args[0];
+		}
+		if (args.length > 1) {
+			serverName = args[1];
+		}
+		if (args.length > 2) {
+			serverPort = Integer.parseInt(args[2]);
+		}
+		if (args.length > 3) {
+			myAddress = args[3];
+		}
+		if (args.length > 4) {
+			myPort = Integer.parseInt(args[4]);
+		}
+		if (pedirArquivoServidor(fileName, serverName, serverPort)) {
+			boolean teveProblema = false;
+			do {
+				teveProblema = false;
+				ClienteDownload cd = new ClienteDownload(fileName);
+				while (!cd.tentarBaixarPedacos()) {
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
+					if (cd.juntarPedacos() == null) {
+						teveProblema = true;
+					}
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
-			try {
-				cd.juntarPedacos();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			} while (!teveProblema);
 
 		}
 	}

@@ -14,6 +14,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+
+import org.ita.server.MD5Checksum;
 
 import com.json.parsers.JSONParser;
 import com.json.parsers.JsonParserFactory;
@@ -23,10 +26,48 @@ public class ClienteDownload {
 	private ArquivoDownload arquivo;
 	private String filename;
 	List<Pedaco> pedacosBaixados = new ArrayList<>();
-	private String myAddress = "localhost";
-	private int myPort = 4568;
-	
+
+	public ClienteDownload(String fileName) {
+		String conteudoJson = null;
+		BufferedReader bufReader = null;
+		this.filename = fileName;
+		try {
+			FileReader f = new FileReader(fileName + "-local.tracker");
+			bufReader = new BufferedReader(f);
+			conteudoJson = bufReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			bufReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JsonParserFactory factory = JsonParserFactory.getInstance();
+		JSONParser parser = factory.newJsonParser();
+		Map jsonMap = parser.parseJson(conteudoJson);
+
+		System.out.println(jsonMap.get("tamanho"));
+		this.arquivo = new ArquivoDownload(fileName,
+				Integer.parseInt((String) jsonMap.get("tamanho")));
+		System.out.println(jsonMap.get("pedacos"));
+
+		ArrayList<Map> second = (ArrayList<Map>) jsonMap.get("pedacos");
+		int i = 0;
+		for (Map pedacoM : (ArrayList<Map>) jsonMap.get("pedacos")) {
+			Pedaco p = new Pedaco(++i);
+			for (Map fornecedorM : (ArrayList<Map>) pedacoM.get("fornecedores")) {
+				p.addFornecedor((String) fornecedorM.get("ip"),
+						Integer.parseInt((String) fornecedorM.get("porta")));
+			}
+			this.arquivo.addPedaco(p);
+		}
+		this.arquivo.setMd5((String) jsonMap.get("md5"));
+	}
+
 	public File juntarPedacos() throws IOException {
+		arquivo.getMd5();
 		File ff = new File(filename);
 		ff.createNewFile();
 		byte[] b = new byte[arquivo.getTamanho()];
@@ -43,6 +84,13 @@ public class ClienteDownload {
 		fos.write(b);
 		fos.flush();
 		fos.close();
+		try {
+			if (MD5Checksum.getMD5Checksum(filename).equals(arquivo.getMd5())) {
+				return null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return ff;
 	}
 
@@ -59,7 +107,7 @@ public class ClienteDownload {
 				BufferedReader stdIn = new BufferedReader(
 						new InputStreamReader(System.in))) {
 			out.println("Voce tem");
-			int rand = 35;
+			int rand = (new Random()).nextInt();
 			out.println(rand);
 			out.println(filename);
 			out.println("pedaco:" + pedaco);
@@ -223,45 +271,6 @@ public class ClienteDownload {
 		return res;
 	}
 
-	public ClienteDownload(String fileName) {
-		String conteudoJson = null;
-		BufferedReader bufReader = null;
-		this.filename = fileName;
-		try {
-			FileReader f = new FileReader(fileName + "-local.tracker");
-			bufReader = new BufferedReader(f);
-			conteudoJson = bufReader.readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			bufReader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		JsonParserFactory factory = JsonParserFactory.getInstance();
-		JSONParser parser = factory.newJsonParser();
-		Map jsonMap = parser.parseJson(conteudoJson);
-
-		System.out.println(jsonMap.get("tamanho"));
-		this.arquivo = new ArquivoDownload(fileName,
-				Integer.parseInt((String) jsonMap.get("tamanho")));
-		System.out.println(jsonMap.get("pedacos"));
-
-		ArrayList<Map> second = (ArrayList<Map>) jsonMap.get("pedacos");
-		int i = 0;
-		for (Map pedacoM : (ArrayList<Map>) jsonMap.get("pedacos")) {
-			Pedaco p = new Pedaco(++i);
-			for (Map fornecedorM : (ArrayList<Map>) pedacoM.get("fornecedores")) {
-				p.addFornecedor((String) fornecedorM.get("ip"),
-						Integer.parseInt((String) fornecedorM.get("porta")));
-			}
-			this.arquivo.addPedaco(p);
-		}
-		this.arquivo.setMd5((String) jsonMap.get("md5"));
-	}
-
 	public boolean tentarBaixarPedacos() {
 		int i = 0;
 
@@ -271,8 +280,8 @@ public class ClienteDownload {
 				for (Fornecedor f : p.getFornecedores()) {
 					if (pedirArquivo(f.getIp(), f.getPorta(), filename, i)) {
 						pedacosBaixados.add(p);
-						new AvisadorPosse().avisarPosse(myAddress, myPort,
-								filename, i - 1);
+						new AvisadorPosse().avisarPosse(Cliente.myAddress,
+								Cliente.myPort, filename, i - 1);
 						break;
 					}
 				}
